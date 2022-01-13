@@ -52,11 +52,20 @@ public class Ctx implements I_PrintCtx {
   public static final String NO_NULL_KEYS = "Null keys are NOT allowed!";
   public static final String NO_NULL_VALUES = "Null values are NOT allowed!";
 
+  private final boolean allowNullReturn;
   private final Map<String, Supplier<Object>> creationMap;
   private final Map<String, Object> instanceMap;
 
   public Ctx(CtxMutant cm) {
-
+    allowNullReturn = false;
+    creationMap = Collections.unmodifiableMap(new HashMap<>(cm.getCreationMap()));
+    checkParams(creationMap);
+    instanceMap = new ConcurrentHashMap<>(cm.getInstanceMap());
+    checkParams(instanceMap);
+  }
+  
+  public Ctx(CtxMutant cm, boolean allowNullReturn) {
+    this.allowNullReturn = allowNullReturn;
     creationMap = Collections.unmodifiableMap(new HashMap<>(cm.getCreationMap()));
     checkParams(creationMap);
     instanceMap = new ConcurrentHashMap<>(cm.getInstanceMap());
@@ -76,7 +85,11 @@ public class Ctx implements I_PrintCtx {
       throw new IllegalStateException(String.format(NO_SUPPLIER_FOUND_FOR_S, name));
     }
     Object r = s.get();
+
     if (r == null) {
+      if (allowNullReturn) {
+        return null;
+      }
       throw new IllegalStateException(String.format(THE_SUPPLIER_FOR_S_RETURNED_NULL, name));
     }
     return r;
