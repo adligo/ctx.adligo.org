@@ -6,6 +6,29 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
+
+/**
+ * This class provides the Copy Constructor parameter to the {@link Ctx} class<br/><br/>
+ * @author scott<br/><br/>
+ * <pre><code>
+ * ---------------- Apache ICENSE-2.0 --------------------------
+ *
+ * Copyright 2022 Adligo Inc
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * </code><pre>
+ */
+
 public class CtxMutant {
 	public static final String A_NON_NULL_INSTANCE_IS_REQUIRED = "A non null instance is required!";
 	public static final String A_NON_NULL_SUPPLIER_IS_REQUIRED = "A non null supplier is required!";
