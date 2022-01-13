@@ -8,6 +8,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.adligo.i.ctx4jse.shared.I_PrintCtx;
+import org.adligo.i.threads.I_ThreadCtx;
 
 /**
  * This class provides a Functional Implementation of the Context Creation and
@@ -47,7 +48,7 @@ import org.adligo.i.ctx4jse.shared.I_PrintCtx;
  *         <pre>
  */
 
-public class Ctx implements I_PrintCtx {
+public class Ctx implements I_PrintCtx, I_ThreadCtx {
   public static final String THE_SUPPLIER_FOR_S_RETURNED_NULL = "The Supplier for '%s' returned null?";
   public static final String NO_SUPPLIER_FOUND_FOR_S = "No Supplier found for %s";
   public static final String NO_NULL_KEYS = "Null keys are NOT allowed!";
@@ -111,13 +112,13 @@ public class Ctx implements I_PrintCtx {
   public Object get(String name) {
     Object r = instanceMap.get(name);
     if (r == null) {
-      synchronized (instanceMap) {
-        r = instanceMap.get(name);
-        if (r == null) {
-          r = create(name);
-          instanceMap.put(name, r);
+      synchronize(instanceMap, () -> {
+        Object sr = instanceMap.get(name);
+        if (sr == null) {
+          sr = create(name);
+          instanceMap.put(name, sr);
         }
-      }
+      });
     }
     return r;
   }

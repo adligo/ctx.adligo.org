@@ -44,13 +44,8 @@ public class CtxMutant {
   private final Map<String, Object> instanceMap;
 
   public CtxMutant() {
-    this(() -> new HashMap<>());
-  }
-  
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  CtxMutant(Supplier<HashMap> hashMapCtxCreation) {
-    creationMap = hashMapCtxCreation.get();
-    instanceMap = hashMapCtxCreation.get();
+    creationMap = new HashMap<>();
+    instanceMap = new HashMap<>();
   }
   
   public CtxMutant add(String name, Supplier<Object> supplier) {
