@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 import org.adligo.i.ctx4jse.shared.I_PrintCtx;
@@ -57,21 +58,26 @@ public class Ctx implements I_PrintCtx {
   private final Map<String, Object> instanceMap;
 
   public Ctx(CtxMutant cm) {
-    allowNullReturn = false;
-    creationMap = Collections.unmodifiableMap(new HashMap<>(cm.getCreationMap()));
+    this(cm, false);
+  }
+  
+  @SuppressWarnings("unchecked")
+  public Ctx(CtxMutant cm, boolean allowNullReturn) {
+    this(cm, allowNullReturn, 
+        (m) -> Collections.unmodifiableMap(new HashMap<>(m)),
+        (m) -> new ConcurrentHashMap<>(m));
+  }
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  Ctx(CtxMutant cm, boolean allowNullReturn, Function<Map, Map> unmodifiableMapSupplier,
+      Function<Map, ConcurrentHashMap> concurrentHashMapSupplier) {
+    this.allowNullReturn = allowNullReturn;
+    creationMap = unmodifiableMapSupplier.apply(cm.getCreationMap());
     checkParams(creationMap);
-    instanceMap = new ConcurrentHashMap<>(cm.getInstanceMap());
+    instanceMap = concurrentHashMapSupplier.apply(cm.getInstanceMap());
     checkParams(instanceMap);
   }
   
-  public Ctx(CtxMutant cm, boolean allowNullReturn) {
-    this.allowNullReturn = allowNullReturn;
-    creationMap = Collections.unmodifiableMap(new HashMap<>(cm.getCreationMap()));
-    checkParams(creationMap);
-    instanceMap = new ConcurrentHashMap<>(cm.getInstanceMap());
-    checkParams(instanceMap);
-  }
-
   @SuppressWarnings("unchecked")
   @Override
   public <T> T create(Class<T> clazz) {

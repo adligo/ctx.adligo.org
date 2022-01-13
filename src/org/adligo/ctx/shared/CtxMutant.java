@@ -40,9 +40,19 @@ public class CtxMutant {
   public static final String A_NON_NULL_INSTANCE_IS_REQUIRED = "A non null instance is required!";
   public static final String A_NON_NULL_SUPPLIER_IS_REQUIRED = "A non null supplier is required!";
   public static final String A_NON_NULL_NAME_IS_REQUIRED = "A non null name is required!";
-  private final Map<String, Supplier<Object>> creationMap = new HashMap<>();
-  private final Map<String, Object> instanceMap = new HashMap<>();
+  private final Map<String, Supplier<Object>> creationMap;
+  private final Map<String, Object> instanceMap;
 
+  public CtxMutant() {
+    this(() -> new HashMap<>());
+  }
+  
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  CtxMutant(Supplier<HashMap> hashMapCtxCreation) {
+    creationMap = hashMapCtxCreation.get();
+    instanceMap = hashMapCtxCreation.get();
+  }
+  
   public CtxMutant add(String name, Supplier<Object> supplier) {
     creationMap.put(Objects.requireNonNull(name, A_NON_NULL_NAME_IS_REQUIRED),
         Objects.requireNonNull(supplier, A_NON_NULL_SUPPLIER_IS_REQUIRED));

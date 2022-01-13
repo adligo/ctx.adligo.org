@@ -43,7 +43,7 @@ publishing {
   publications {
     create<MavenPublication>("maven") {
       groupId = "org.adligo"
-      artifactId = "ctx4js"
+      artifactId = "ctx"
       version = getTag()
       from(components["java"])
     }
