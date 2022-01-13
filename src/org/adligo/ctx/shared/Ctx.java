@@ -47,68 +47,68 @@ import org.adligo.i.ctx4jse.shared.I_PrintCtx;
  */
 
 public class Ctx implements I_PrintCtx {
-	public static final String THE_SUPPLIER_FOR_S_RETURNED_NULL = "The Supplier for '%s' returned null?";
-	public static final String NO_SUPPLIER_FOUND_FOR_S = "No Supplier found for %s";
-	public static final String NO_NULL_KEYS = "Null keys are NOT allowed!";
-	public static final String NO_NULL_VALUES = "Null values are NOT allowed!";
+  public static final String THE_SUPPLIER_FOR_S_RETURNED_NULL = "The Supplier for '%s' returned null?";
+  public static final String NO_SUPPLIER_FOUND_FOR_S = "No Supplier found for %s";
+  public static final String NO_NULL_KEYS = "Null keys are NOT allowed!";
+  public static final String NO_NULL_VALUES = "Null values are NOT allowed!";
 
-	private final Map<String, Supplier<Object>> creationMap;
-	private final Map<String, Object> instanceMap;
+  private final Map<String, Supplier<Object>> creationMap;
+  private final Map<String, Object> instanceMap;
 
-	public Ctx(CtxMutant cm) {
+  public Ctx(CtxMutant cm) {
 
-		creationMap = Collections.unmodifiableMap(new HashMap<>(cm.getCreationMap()));
-		checkParams(creationMap);
-		instanceMap = new ConcurrentHashMap<>(cm.getInstanceMap());
-		checkParams(instanceMap);
-	}
+    creationMap = Collections.unmodifiableMap(new HashMap<>(cm.getCreationMap()));
+    checkParams(creationMap);
+    instanceMap = new ConcurrentHashMap<>(cm.getInstanceMap());
+    checkParams(instanceMap);
+  }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> T create(Class<T> clazz) {
-		return (T) create(clazz.getName());
-	}
+  @SuppressWarnings("unchecked")
+  @Override
+  public <T> T create(Class<T> clazz) {
+    return (T) create(clazz.getName());
+  }
 
-	@Override
-	public Object create(String name) {
-		Supplier<Object> s = creationMap.get(name);
-		if (s == null) {
-			throw new IllegalStateException(String.format(NO_SUPPLIER_FOUND_FOR_S, name));
-		}
-		Object r = s.get();
-		if (r == null) {
-			throw new IllegalStateException(String.format(THE_SUPPLIER_FOR_S_RETURNED_NULL, name));
-		}
-		return r;
-	}
+  @Override
+  public Object create(String name) {
+    Supplier<Object> s = creationMap.get(name);
+    if (s == null) {
+      throw new IllegalStateException(String.format(NO_SUPPLIER_FOUND_FOR_S, name));
+    }
+    Object r = s.get();
+    if (r == null) {
+      throw new IllegalStateException(String.format(THE_SUPPLIER_FOR_S_RETURNED_NULL, name));
+    }
+    return r;
+  }
 
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T> T get(Class<T> clazz) {
-		return (T) get(clazz.getName());
-	}
+  @SuppressWarnings("unchecked")
+  @Override
+  public <T> T get(Class<T> clazz) {
+    return (T) get(clazz.getName());
+  }
 
-	@Override
-	public Object get(String name) {
-		Object r = instanceMap.get(name);
-		if (r == null) {
-			synchronized (instanceMap) {
-				r = instanceMap.get(name);
-				if (r == null) {
-					r = create(name);
-					instanceMap.put(name, r);
-				}
-			}
-		}
-		return r;
-	}
+  @Override
+  public Object get(String name) {
+    Object r = instanceMap.get(name);
+    if (r == null) {
+      synchronized (instanceMap) {
+        r = instanceMap.get(name);
+        if (r == null) {
+          r = create(name);
+          instanceMap.put(name, r);
+        }
+      }
+    }
+    return r;
+  }
 
-	private void checkParams(Map<?, ?> map) {
-		if (map.containsKey(null)) {
-			throw new IllegalArgumentException(NO_NULL_KEYS);
-		}
-		if (map.containsValue(null)) {
-			throw new IllegalArgumentException(NO_NULL_VALUES);
-		}
-	}
+  private void checkParams(Map<?, ?> map) {
+    if (map.containsKey(null)) {
+      throw new IllegalArgumentException(NO_NULL_KEYS);
+    }
+    if (map.containsValue(null)) {
+      throw new IllegalArgumentException(NO_NULL_VALUES);
+    }
+  }
 }
