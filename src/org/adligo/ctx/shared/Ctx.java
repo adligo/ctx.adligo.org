@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -48,16 +49,23 @@ import org.adligo.i.threads.I_ThreadCtx;
  *         <pre>
  */
 
-public class Ctx implements I_PrintCtx, I_ThreadCtx {
-  public static final String THE_SUPPLIER_FOR_S_RETURNED_NULL = "The Supplier for '%s' returned null?";
+public class Ctx implements I_PrintCtx, I_ThreadCtx, Consumer<Throwable> {
+  public static final String HANDLER = "handler";
   public static final String NO_SUPPLIER_FOUND_FOR_S = "No Supplier found for %s";
   public static final String NO_NULL_KEYS = "Null keys are NOT allowed!";
   public static final String NO_NULL_VALUES = "Null values are NOT allowed!";
-
+  public static final String THE_SUPPLIER_FOR_S_RETURNED_NULL = "The Supplier for '%s' returned null?";
+  
+  public static Consumer<Throwable> newHandler() {
+    return (t) -> {
+      t.printStackTrace(System.out);;
+    };
+  }
   private final boolean allowNullReturn;
   private final Map<String, Supplier<Object>> creationMap;
   private final Map<String, Object> instanceMap;
-
+  private final Consumer<Throwable> handler;
+  
   public Ctx(CtxMutant cm) {
     this(cm, false);
   }
@@ -77,8 +85,14 @@ public class Ctx implements I_PrintCtx, I_ThreadCtx {
     checkParams(creationMap);
     instanceMap = concurrentHashMapSupplier.apply(cm.getInstanceMap());
     checkParams(instanceMap);
+    handler = setHandler();
   }
-  
+ 
+  @Override
+  public void accept(Throwable t) {
+    handle(t);
+  }
+ 
   @SuppressWarnings("unchecked")
   @Override
   public <T> T create(Class<T> clazz) {
@@ -112,12 +126,13 @@ public class Ctx implements I_PrintCtx, I_ThreadCtx {
   public Object get(String name) {
     Object r = instanceMap.get(name);
     if (r == null) {
-      synchronize(instanceMap, () -> {
+      return synchronize(instanceMap, () -> {
         Object sr = instanceMap.get(name);
         if (sr == null) {
           sr = create(name);
           instanceMap.put(name, sr);
         }
+        return sr;
       });
     }
     return r;
@@ -129,6 +144,27 @@ public class Ctx implements I_PrintCtx, I_ThreadCtx {
     }
     if (map.containsValue(null)) {
       throw new IllegalArgumentException(NO_NULL_VALUES);
+    }
+  }
+
+  @Override
+  public void handle(Throwable t) {
+    handler.accept(t);
+  }
+
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  private Consumer<Throwable> setHandler() {
+    Consumer<Throwable> hc = (Consumer) instanceMap.get(HANDLER);
+    if (hc == null) {
+      Supplier hcSup = creationMap.get(HANDLER);
+      if (hcSup != null) {
+        hc = (Consumer) hcSup.get();
+      }
+    }
+    if (hc != null) {
+      return hc;  
+    } else {
+      return newHandler();
     }
   }
 }
