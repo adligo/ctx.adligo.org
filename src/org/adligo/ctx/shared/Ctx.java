@@ -51,10 +51,11 @@ import org.adligo.i.threads.I_ThreadCtx;
 
 public class Ctx implements I_PrintCtx, Consumer<Throwable> {
   public static final String HANDLER = "handler";
-  public static final String NO_SUPPLIER_FOUND_FOR_S = "No Supplier found for %s";
+  public static final String NO_SUPPLIER_FOUND_FOR_S = "No Supplier found for ";
   public static final String NO_NULL_KEYS = "Null keys are NOT allowed!";
   public static final String NO_NULL_VALUES = "Null values are NOT allowed!";
-  public static final String THE_SUPPLIER_FOR_S_RETURNED_NULL = "The Supplier for '%s' returned null?";
+  public static final String THE_SUPPLIER_FOR_S_RETURNED_NULL_1 = "The Supplier for '";
+  public static final String THE_SUPPLIER_FOR_S_RETURNED_NULL_2 = "' returned null?";
   
   public static Consumer<Throwable> newHandler() {
     return (t) -> {
@@ -103,7 +104,7 @@ public class Ctx implements I_PrintCtx, Consumer<Throwable> {
   public Object create(String name) {
     Supplier<Object> s = creationMap.get(name);
     if (s == null) {
-      throw new IllegalStateException(String.format(NO_SUPPLIER_FOUND_FOR_S, name));
+      throw new IllegalStateException(NO_SUPPLIER_FOUND_FOR_S + name);
     }
     Object r = s.get();
 
@@ -111,7 +112,8 @@ public class Ctx implements I_PrintCtx, Consumer<Throwable> {
       if (allowNullReturn) {
         return null;
       }
-      throw new IllegalStateException(String.format(THE_SUPPLIER_FOR_S_RETURNED_NULL, name));
+      throw new IllegalStateException(THE_SUPPLIER_FOR_S_RETURNED_NULL_1 +
+          name + THE_SUPPLIER_FOR_S_RETURNED_NULL_2);
     }
     return r;
   }
