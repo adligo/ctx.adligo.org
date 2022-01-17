@@ -6,7 +6,7 @@
   
   @author Scott
   
-  ---------------- Apache ICENSE-2.0 --------------------------
+            Apache ICENSE-2.0 
  
   Copyright 2022 Adligo Inc
   
@@ -27,7 +27,7 @@
   <!-- Inherit the core Web Toolkit stuff.                        -->
   <inherits name='com.google.gwt.user.User'/>
   <inherits name='org.adligo.i.ctx.I_Ctx'/>
-    <inherits name='org.adligo.i.ctx.I_Ctx4Jse'/>
+  <inherits name='org.adligo.i.ctx4jse.I_Ctx4Jse'/>
   <!-- Note Shared is for GWT, JSE and JME                  -->
   <source path='shared'/>
 </module>
