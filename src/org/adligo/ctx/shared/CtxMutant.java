@@ -40,7 +40,7 @@ public class CtxMutant {
   public static final String A_NON_NULL_INSTANCE_IS_REQUIRED = "A non null instance is required!";
   public static final String A_NON_NULL_SUPPLIER_IS_REQUIRED = "A non null supplier is required!";
   public static final String A_NON_NULL_NAME_IS_REQUIRED = "A non null name is required!";
-  private final Map<String, Supplier<Object>> creationMap;
+  private final Map<String, Supplier> creationMap;
   private final Map<String, Object> instanceMap;
 
   public CtxMutant() {
@@ -48,21 +48,29 @@ public class CtxMutant {
     instanceMap = new HashMap<>();
   }
   
-  public CtxMutant add(String name, Supplier<Object> supplier) {
-    creationMap.put(Objects.requireNonNull(name, A_NON_NULL_NAME_IS_REQUIRED),
-        Objects.requireNonNull(supplier, A_NON_NULL_SUPPLIER_IS_REQUIRED));
-    return this;
-  }
 
-  public CtxMutant add(String name, Object instance) {
+  public <T> CtxMutant add(String name, T instance) {
     instanceMap.put(Objects.requireNonNull(name, A_NON_NULL_NAME_IS_REQUIRED),
         Objects.requireNonNull(instance, A_NON_NULL_INSTANCE_IS_REQUIRED));
     return this;
   }
 
+  /**
+   * Type inference is bad on GWT, and may have issues elsewhere
+   * @param name
+   * @param supplier
+   * @return
+   */
+  public <T> CtxMutant addCreator(String name, Supplier<T> supplier) {
+    creationMap.put(Objects.requireNonNull(name, A_NON_NULL_NAME_IS_REQUIRED),
+        Objects.requireNonNull(supplier, A_NON_NULL_SUPPLIER_IS_REQUIRED));
+    return this;
+  }
+  
+  @SuppressWarnings("unchecked")
   public Map<String, Supplier<Object>> getCreationMap() {
     // enforce encapsulation, block external mutation
-    return Collections.unmodifiableMap(creationMap);
+    return Collections.unmodifiableMap((Map) creationMap);
   }
 
   public Map<String, Object> getInstanceMap() {

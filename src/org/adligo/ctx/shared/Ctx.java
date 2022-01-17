@@ -137,12 +137,12 @@ public class Ctx implements I_PrintCtx, Consumer<Throwable> {
   }
 
   private void checkParams(Map<?, ?> map) {
-    if (map.containsKey(null)) {
-      throw new IllegalArgumentException(NO_NULL_KEYS);
-    }
-    if (map.containsValue(null)) {
-      throw new IllegalArgumentException(NO_NULL_VALUES);
-    }
+//    if (map.containsKey(null)) {
+//      throw new IllegalArgumentException(NO_NULL_KEYS);
+//    }
+//    if (map.containsValue(null)) {
+//      throw new IllegalArgumentException(NO_NULL_VALUES);
+//    }
   }
 
   @Override
