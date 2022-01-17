@@ -49,7 +49,7 @@ import org.adligo.i.threads.I_ThreadCtx;
  *         <pre>
  */
 
-public class Ctx implements I_PrintCtx, I_ThreadCtx, Consumer<Throwable> {
+public class Ctx implements I_PrintCtx, Consumer<Throwable> {
   public static final String HANDLER = "handler";
   public static final String NO_SUPPLIER_FOUND_FOR_S = "No Supplier found for %s";
   public static final String NO_NULL_KEYS = "Null keys are NOT allowed!";
@@ -78,7 +78,7 @@ public class Ctx implements I_PrintCtx, I_ThreadCtx, Consumer<Throwable> {
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  Ctx(CtxMutant cm, boolean allowNullReturn, Function<Map, Map> unmodifiableMapSupplier,
+  protected Ctx(CtxMutant cm, boolean allowNullReturn, Function<Map, Map> unmodifiableMapSupplier,
       Function<Map, ConcurrentHashMap> concurrentHashMapSupplier) {
     this.allowNullReturn = allowNullReturn;
     creationMap = unmodifiableMapSupplier.apply(cm.getCreationMap());
@@ -126,14 +126,10 @@ public class Ctx implements I_PrintCtx, I_ThreadCtx, Consumer<Throwable> {
   public Object get(String name) {
     Object r = instanceMap.get(name);
     if (r == null) {
-      return synchronize(instanceMap, () -> {
-        Object sr = instanceMap.get(name);
-        if (sr == null) {
-          sr = create(name);
-          instanceMap.put(name, sr);
-        }
-        return sr;
-      });
+      r = create(name);
+      if (r != null) {
+        instanceMap.put(name, r);
+      }
     }
     return r;
   }
@@ -150,6 +146,14 @@ public class Ctx implements I_PrintCtx, I_ThreadCtx, Consumer<Throwable> {
   @Override
   public void handle(Throwable t) {
     handler.accept(t);
+  }
+
+  /**
+   * for extensions only to allow synchronization on get
+   * @return
+   */
+  protected Map<String, Object> getInstanceMap() {
+     return instanceMap;
   }
 
   @SuppressWarnings({ "unchecked", "rawtypes" })

@@ -28,6 +28,6 @@
   <inherits name='com.google.gwt.user.User'/>
   <inherits name='org.adligo.i.ctx.I_Ctx'/>
     <inherits name='org.adligo.i.ctx.I_Ctx4Jse'/>
-  <!-- Specify the paths for translatable code                    -->
+  <!-- Note Shared is for GWT, JSE and JME                  -->
   <source path='shared'/>
 </module>
