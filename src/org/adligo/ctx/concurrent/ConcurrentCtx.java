@@ -1,26 +1,16 @@
 package org.adligo.ctx.concurrent;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
-import org.adligo.ctx.shared.Ctx;
-import org.adligo.ctx.shared.CtxMutant;
+import org.adligo.ctx.shared.AbstractCtx;
+import org.adligo.ctx.shared.CtxParams;
 import org.adligo.i.threads.I_ThreadCtx;
 
 /**
- * This class provides a Functional Implementation of the Context Creation and
- * Contextualtian patterns for GWT, JSweet's Javascript / Typescript and
- * applications that are compiled into Native Executibles from Java Source code.
- * <br/>
- * <br/>
- * If your running code on the JSE, the following project provides a Object
- * Oriented Implementation that is facilitated through Java's Reflection
- * API;<br/>
- * {@link <a href=
- * "https://github.com/adligo/ctx4jse.adligo.org">ctx4jse.adligo.org</a>} <br/>
- * <br/>
+ * This class provides a Mutable Concurrent Context useable on the JVM.
  * 
  * @author scott<br/>
  *         <br/>
@@ -47,24 +37,34 @@ import org.adligo.i.threads.I_ThreadCtx;
  *         <pre>
  */
 
-public class ConcurrentCtx extends Ctx implements I_ThreadCtx {
+public class ConcurrentCtx extends AbstractCtx implements I_ThreadCtx {
   
 
-  public ConcurrentCtx(CtxMutant cm) {
-    super(cm, false);
+  public ConcurrentCtx() {
+    this(new CtxParams(), false);
+  }
+
+  public ConcurrentCtx(CtxParams cm) {
+    this(cm, false);
   }
   
   @SuppressWarnings("unchecked")
-  public ConcurrentCtx(CtxMutant cm, boolean allowNullReturn) {
-    super(cm, allowNullReturn, 
-        (m) -> Collections.unmodifiableMap(new HashMap<>(m)),
+  public ConcurrentCtx(CtxParams cm, boolean allowNullReturn) {
+    this(cm, allowNullReturn, 
+        (m) -> Collections.unmodifiableMap(m),
         (m) -> new ConcurrentHashMap<>(m));
   }
   
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  protected ConcurrentCtx(CtxParams params, boolean allowNullReturn,
+      Function<Map, Map> unmodifiableMapSupplier,
+      Function<Map, Map> concurrentMapSupplier) {
+    super(params, allowNullReturn, unmodifiableMapSupplier,
+        concurrentMapSupplier.apply(params.getInstanceMap()));
+  }
 
   @Override
   public Object get(String name) {
-    Map<String, Object> instanceMap = getInstanceMap();
     Object r = instanceMap.get(name);
     if (r == null) {
       return synchronize(instanceMap, () -> {

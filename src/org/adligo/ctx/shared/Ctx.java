@@ -3,174 +3,45 @@ package org.adligo.ctx.shared;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
-
-import org.adligo.i.ctx4jse.shared.I_PrintCtx;
-import org.adligo.i.threads.I_ThreadCtx;
 
 /**
- * This class provides a Functional Implementation of the Context Creation and
- * Contextualtian patterns for GWT, JSweet's Javascript / Typescript and
- * applications that are compiled into Native Executibles from Java Source code.
- * <br/>
- * <br/>
- * If your running code on the JSE, the following project provides a Object
- * Oriented Implementation that is facilitated through Java's Reflection
- * API;<br/>
- * {@link <a href=
- * "https://github.com/adligo/ctx4jse.adligo.org">ctx4jse.adligo.org</a>} <br/>
- * <br/>
+ * A immutable Ctx, useful in some situations for making sure
+ * all instances are created before use of instances of the Class.
+ * However in most situations a CtxMutant will be preferred 
+ * mostly for the lazy / just in time contetualtian creation pattern.
  * 
- * @author scott<br/>
- *         <br/>
- * 
- *         <pre>
- *         <code>
- * ---------------- Apache ICENSE-2.0 --------------------------
+ * @author scott
  *
- * Copyright 2022 Adligo Inc
- * 
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *    http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * </code>
- * 
- *         <pre>
  */
-
-public class Ctx implements I_PrintCtx, Consumer<Throwable> {
-  public static final String HANDLER = "handler";
-  public static final String NO_SUPPLIER_FOUND_FOR_S = "No Supplier found for ";
-  public static final String NO_NULL_KEYS = "Null keys are NOT allowed!";
-  public static final String NO_NULL_VALUES = "Null values are NOT allowed!";
-  public static final String THE_SUPPLIER_FOR_S_RETURNED_NULL_1 = "The Supplier for '";
-  public static final String THE_SUPPLIER_FOR_S_RETURNED_NULL_2 = "' returned null?";
+public class Ctx extends AbstractCtx {
   
-  public static Consumer<Throwable> newHandler() {
-    return (t) -> {
-      t.printStackTrace(System.out);;
-    };
-  }
-  private final boolean allowNullReturn;
-  private final Map<String, Supplier<Object>> creationMap;
-  private final Map<String, Object> instanceMap;
-  private final Consumer<Throwable> handler;
-  
-  public Ctx(CtxMutant cm) {
-    this(cm, false);
+  public Ctx(CtxParams params) {
+    this(params, false);
   }
   
   @SuppressWarnings("unchecked")
-  public Ctx(CtxMutant cm, boolean allowNullReturn) {
-    this(cm, allowNullReturn, 
-        (m) -> Collections.unmodifiableMap(new HashMap<>(m)),
-        (m) -> new ConcurrentHashMap<>(m));
+  public Ctx(CtxParams params, boolean allowNullReturn) {
+    this(params, allowNullReturn, 
+        (m) -> Collections.unmodifiableMap(new HashMap<>(m)));
   }
 
   @SuppressWarnings({ "rawtypes", "unchecked" })
-  protected Ctx(CtxMutant cm, boolean allowNullReturn, Function<Map, Map> unmodifiableMapSupplier,
-      Function<Map, ConcurrentHashMap> concurrentHashMapSupplier) {
-    this.allowNullReturn = allowNullReturn;
-    creationMap = unmodifiableMapSupplier.apply(cm.getCreationMap());
-    checkParams(creationMap);
-    instanceMap = concurrentHashMapSupplier.apply(cm.getInstanceMap());
-    checkParams(instanceMap);
-    handler = setHandler();
-  }
- 
-  @Override
-  public void accept(Throwable t) {
-    handle(t);
-  }
- 
-  @SuppressWarnings("unchecked")
-  @Override
-  public <T> T create(Class<T> clazz) {
-    return (T) create(clazz.getName());
-  }
-
-  @Override
-  public Object create(String name) {
-    Supplier<Object> s = creationMap.get(name);
-    if (s == null) {
-      throw new IllegalStateException(NO_SUPPLIER_FOUND_FOR_S + name);
-    }
-    Object r = s.get();
-
-    if (r == null) {
-      if (allowNullReturn) {
-        return null;
-      }
-      throw new IllegalStateException(THE_SUPPLIER_FOR_S_RETURNED_NULL_1 +
-          name + THE_SUPPLIER_FOR_S_RETURNED_NULL_2);
-    }
-    return r;
-  }
-
-  @SuppressWarnings("unchecked")
-  @Override
-  public <T> T get(Class<T> clazz) {
-    return (T) get(clazz.getName());
+  protected Ctx(CtxParams params, boolean allowNullReturn, 
+      Function<Map, Map> unmodifiableMapSupplier) {
+    super(params, allowNullReturn, unmodifiableMapSupplier,
+        unmodifiableMapSupplier.apply(params.getInstanceMap()));
   }
 
   @Override
   public Object get(String name) {
     Object r = instanceMap.get(name);
     if (r == null) {
-      r = create(name);
-      if (r != null) {
-        instanceMap.put(name, r);
+      if (!allowNullReturn) {
+        throw new IllegalStateException(NO_INSTANCE_FOuND_FOR_KEY_1 +
+            name + NO_INSTANCE_FOuND_FOR_KEY_2);
       }
     }
     return r;
-  }
-
-  private void checkParams(Map<?, ?> map) {
-//    if (map.containsKey(null)) {
-//      throw new IllegalArgumentException(NO_NULL_KEYS);
-//    }
-//    if (map.containsValue(null)) {
-//      throw new IllegalArgumentException(NO_NULL_VALUES);
-//    }
-  }
-
-  @Override
-  public void handle(Throwable t) {
-    handler.accept(t);
-  }
-
-  /**
-   * for extensions only to allow synchronization on get
-   * @return
-   */
-  protected Map<String, Object> getInstanceMap() {
-     return instanceMap;
-  }
-
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  private Consumer<Throwable> setHandler() {
-    Consumer<Throwable> hc = (Consumer) instanceMap.get(HANDLER);
-    if (hc == null) {
-      Supplier hcSup = creationMap.get(HANDLER);
-      if (hcSup != null) {
-        hc = (Consumer) hcSup.get();
-      }
-    }
-    if (hc != null) {
-      return hc;  
-    } else {
-      return newHandler();
-    }
   }
 }
