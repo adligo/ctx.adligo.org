@@ -3,17 +3,16 @@ package org.adligo.ctx.jse;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 
-import org.adligo.ctx.shared.AbstractCtx;
 import org.adligo.ctx.shared.CtxParams;
 import org.adligo.i.ctx4jse.shared.I_PrintCtx;
 import org.adligo.i.threads.I_ThreadCtx;
 
 /**
- * This class provides a Mutable Concurrent Context useable on the JVM.
+ * This class provides a Mutable Concurrent Context useable on the standard JVM.
+ * However this code will NOT compile to a native executable due to its use of
+ * reflections, for that use {@link ConcurrentCtxMutant}.
  * 
  * @author scott<br/>
  *         <br/>
@@ -40,7 +39,7 @@ import org.adligo.i.threads.I_ThreadCtx;
  *         <pre>
  */
 
-public class JseCtxMutant extends AbstractCtx implements I_ThreadCtx, I_PrintCtx {
+public class JseCtxMutant extends ConcurrentCtxMutant implements I_ThreadCtx, I_PrintCtx {
   public static final String UNABLE_TO_FIND_S_IN_THIS_CONTEXT = "Unable to find '%s' in this context!";
   public static final String BAD_NAME = "Names passed to the create bean method MUST be java.lang.Class names!\n\t%s";
   public static final String UNABLE_TO_FIND_BEAN_CONSTRUCTOR_FOR_S = "Unable to find bean constructor for %s!";
@@ -59,20 +58,10 @@ public class JseCtxMutant extends AbstractCtx implements I_ThreadCtx, I_PrintCtx
   
   @SuppressWarnings("unchecked")
   public JseCtxMutant(CtxParams cm, boolean allowNullReturn) {
-    this(cm, allowNullReturn, 
+    super(cm, allowNullReturn, 
         (m) -> Collections.unmodifiableMap(m),
         (m) -> new ConcurrentHashMap<>(m));
   }
-  
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  protected JseCtxMutant(CtxParams params, boolean allowNullReturn,
-      Function<Map, Map> unmodifiableMapSupplier,
-      Function<Map, Map> concurrentMapSupplier) {
-    super(params, allowNullReturn, unmodifiableMapSupplier,
-        concurrentMapSupplier.apply(params.getInstanceMap()));
-  }
-
-
 
   @SuppressWarnings("unchecked")
   @Override
@@ -109,19 +98,4 @@ public class JseCtxMutant extends AbstractCtx implements I_ThreadCtx, I_PrintCtx
     }
   }
 
-  @Override
-  public Object get(String name) {
-    Object r = instanceMap.get(name);
-    if (r == null) {
-      return synchronize(instanceMap, () -> {
-        Object sr = instanceMap.get(name);
-        if (sr == null) {
-          sr = create(name);
-          instanceMap.put(name, sr);
-        }
-        return sr;
-      });
-    }
-    return r;
-  }
 }
