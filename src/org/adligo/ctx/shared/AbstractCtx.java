@@ -2,9 +2,9 @@ package org.adligo.ctx.shared;
 
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
+import org.adligo.i.ctx4jse.shared.Check;
 import org.adligo.i.ctx4jse.shared.CheckMixin;
 import org.adligo.i.ctx4jse.shared.I_PrintCtx;
 
@@ -47,8 +47,7 @@ import org.adligo.i.ctx4jse.shared.I_PrintCtx;
  */
 
 public abstract class AbstractCtx implements CheckMixin, 
-I_PrintCtx, Consumer<Throwable> {
-  public static final String HANDLER = "handler";
+I_PrintCtx {
   public static final String NO_SUPPLIER_FOUND_FOR_S = "No Supplier found for ";
   public static final String NO_NULL_KEYS = "Null keys are NOT allowed!";
   public static final String NO_NULL_VALUES = "Null values are NOT allowed!";
@@ -56,6 +55,24 @@ I_PrintCtx, Consumer<Throwable> {
   public static final String NO_INSTANCE_FOuND_FOR_KEY_2 = "'.";
   public static final String THE_SUPPLIER_FOR_S_RETURNED_NULL_1 = "The Supplier for '";
   public static final String THE_SUPPLIER_FOR_S_RETURNED_NULL_2 = "' returned null?";
+
+  @SuppressWarnings("unchecked")
+  protected static Map<String, Object> createConcurrentInstanceMap(CtxParams params) {
+    return Check.notNull(params.getConcurrentMapSupplier())
+        .apply(Check.notNull(params.getInstanceMap()));
+  }
+  
+  @SuppressWarnings("unchecked")
+  protected static Map<String, Object> createInstanceMap(CtxParams params) {
+    return Check.notNull(params.getUnmodifiableMapSupplier())
+        .apply(Check.notNull(params.getInstanceMap()));
+  }
+
+  @SuppressWarnings("unchecked")
+  protected static Map<String, Object> createMutableInstanceMap(CtxParams params) {
+    return Check.notNull(params.getHashMapSupplier())
+        .apply(Check.notNull(params.getInstanceMap()));
+  }
   
   public static Consumer<Throwable> newHandler() {
     return (t) -> {
@@ -64,26 +81,19 @@ I_PrintCtx, Consumer<Throwable> {
   }
   protected final boolean allowNullReturn;
   protected final Map<String, Supplier<Object>> creationMap;
-  protected final Consumer<Throwable> handler;
   protected final Map<String, Object> instanceMap;
 
-  @SuppressWarnings({ "rawtypes", "unchecked" })
-  protected AbstractCtx(CtxParams params, boolean allowNullReturn,
-      Function<Map, Map> unmodifiableMapSupplier,
+  @SuppressWarnings({"unchecked" })
+  protected AbstractCtx(CtxParams params, 
       Map<String, Object> instanceMap) {
-    this.allowNullReturn = allowNullReturn;
-    creationMap = unmodifiableMapSupplier.apply(params.getCreationMap());
+    this.allowNullReturn = params.isAllowNullReturn();
+    creationMap = notNull(params.getUnmodifiableMapSupplier())
+        .apply(params.getCreationMap());
     checkParams(creationMap);
     this.instanceMap = instanceMap;
     checkParams(instanceMap);
-    handler = setHandler(instanceMap);
   }
- 
-  @Override
-  public void accept(Throwable t) {
-    handle(t);
-  }
- 
+
   @SuppressWarnings("unchecked")
   @Override
   public <T> T create(Class<T> clazz) {
@@ -114,29 +124,9 @@ I_PrintCtx, Consumer<Throwable> {
     return (T) get(clazz.getName());
   }
 
-  @Override
-  public void handle(Throwable t) {
-    handler.accept(t);
-  }
-
   void checkParams(Map<?, ?> map) {
     notContainsKey(NO_NULL_KEYS, map, null);
     notContainsValue(NO_NULL_VALUES, map, null);
   }
 
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  Consumer<Throwable> setHandler(Map<String, ?> instanceMap) {
-    Consumer<Throwable> hc = (Consumer) instanceMap.get(HANDLER);
-    if (hc == null) {
-      Supplier hcSup = creationMap.get(HANDLER);
-      if (hcSup != null) {
-        hc = (Consumer) hcSup.get();
-      }
-    }
-    if (hc != null) {
-      return hc;  
-    } else {
-      return newHandler();
-    }
-  }
 }

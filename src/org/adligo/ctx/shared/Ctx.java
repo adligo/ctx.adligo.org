@@ -1,9 +1,6 @@
 package org.adligo.ctx.shared;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
+import org.adligo.i.ctx4jse.shared.CheckMixin;
 
 /**
  * A immutable Ctx, useful in some situations for making sure
@@ -14,23 +11,10 @@ import java.util.function.Function;
  * @author scott
  *
  */
-public class Ctx extends AbstractCtx {
+public class Ctx extends AbstractRootCtx implements CheckMixin {
   
   public Ctx(CtxParams params) {
-    this(params, false);
-  }
-  
-  @SuppressWarnings("unchecked")
-  public Ctx(CtxParams params, boolean allowNullReturn) {
-    this(params, allowNullReturn, 
-        (m) -> Collections.unmodifiableMap(new HashMap<>(m)));
-  }
-
-  @SuppressWarnings({ "rawtypes", "unchecked" })
-  protected Ctx(CtxParams params, boolean allowNullReturn, 
-      Function<Map, Map> unmodifiableMapSupplier) {
-    super(params, allowNullReturn, unmodifiableMapSupplier,
-        unmodifiableMapSupplier.apply(params.getInstanceMap()));
+    super(params, createInstanceMap(params));
   }
 
   @Override

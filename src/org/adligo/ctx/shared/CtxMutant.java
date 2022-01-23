@@ -1,35 +1,15 @@
 package org.adligo.ctx.shared;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-
-public class CtxMutant extends AbstractCtx {
+public class CtxMutant extends AbstractRootCtx {
 
   public CtxMutant() {
-    this(new CtxParams(), false);
+    this(new CtxParams());
   }
   
   public CtxMutant(CtxParams params) {
-    this(params, false);
-  }
-  
-  @SuppressWarnings("unchecked")
-  public CtxMutant(CtxParams params, boolean allowNullReturn) {
-    this(params, allowNullReturn, 
-        (m) -> Collections.unmodifiableMap(new HashMap<>(m)),
-        (m) -> new HashMap<>(m));
+    super(params, createMutableInstanceMap(params));
   }
 
-  @SuppressWarnings({ "rawtypes", "unchecked" })
-  protected CtxMutant(CtxParams params, boolean allowNullReturn, 
-      Function<Map, Map> unmodifiableMapSupplier,
-      Function<Map, Map> hashMapSupplier) {
-    super(params, allowNullReturn, unmodifiableMapSupplier,
-        hashMapSupplier.apply(params.getInstanceMap()));
-  }
-  
   @Override
   public Object get(String name) {
     Object r = instanceMap.get(name);

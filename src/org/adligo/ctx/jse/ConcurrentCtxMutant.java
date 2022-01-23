@@ -1,13 +1,7 @@
 package org.adligo.ctx.jse;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-
-import org.adligo.ctx.shared.AbstractCtx;
+import org.adligo.ctx.shared.AbstractRootCtx;
 import org.adligo.ctx.shared.CtxParams;
-import org.adligo.i.ctx4jse.shared.I_PrintCtx;
 import org.adligo.i.threads.I_ThreadCtx;
 
 /**
@@ -39,36 +33,24 @@ import org.adligo.i.threads.I_ThreadCtx;
  *         <pre>
  */
 
-public class ConcurrentCtxMutant extends AbstractCtx implements I_ThreadCtx, I_PrintCtx {
-
+public class ConcurrentCtxMutant extends AbstractRootCtx implements I_ThreadCtx {
+  //this simply allows the stubbing of the synchronized method
+  private final I_ThreadCtx theadCtx;
+  
   public ConcurrentCtxMutant() {
-    this(new CtxParams(), false);
+    this(new CtxParams());
   }
 
-  public ConcurrentCtxMutant(CtxParams cm) {
-    this(cm, false);
-  }
-  
-  @SuppressWarnings("unchecked")
-  public ConcurrentCtxMutant(CtxParams cm, boolean allowNullReturn) {
-    this(cm, allowNullReturn, 
-        (m) -> Collections.unmodifiableMap(m),
-        (m) -> new ConcurrentHashMap<>(m));
-  }
-  
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  protected ConcurrentCtxMutant(CtxParams params, boolean allowNullReturn,
-      Function<Map, Map> unmodifiableMapSupplier,
-      Function<Map, Map> concurrentMapSupplier) {
-    super(params, allowNullReturn, unmodifiableMapSupplier,
-        concurrentMapSupplier.apply(params.getInstanceMap()));
+  public ConcurrentCtxMutant(CtxParams params) {
+    super(params, createConcurrentInstanceMap(params));
+    theadCtx = notNull(params.getThreadCtx());
   }
 
   @Override
   public Object get(String name) {
     Object r = instanceMap.get(name);
     if (r == null) {
-      return synchronize(instanceMap, () -> {
+      return theadCtx.synchronize(instanceMap, () -> {
         Object sr = instanceMap.get(name);
         if (sr == null) {
           sr = create(name);
