@@ -21,7 +21,7 @@ public class Ctx extends AbstractRootCtx implements CheckMixin {
   public Object get(String name) {
     Object r = instanceMap.get(name);
     if (r == null) {
-      if (!allowNullReturn) {
+      if (!_allowNullReturn) {
         throw new IllegalStateException(NO_INSTANCE_FOuND_FOR_KEY_1 +
             name + NO_INSTANCE_FOuND_FOR_KEY_2);
       }

@@ -1,5 +1,6 @@
 package org.adligo.ctx.shared;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -79,17 +80,16 @@ I_PrintCtx {
       t.printStackTrace(System.out);;
     };
   }
-  protected final boolean allowNullReturn;
+  protected final boolean _allowNullReturn;
   protected final Map<String, Supplier<Object>> creationMap;
   protected final Map<String, Object> instanceMap;
 
   @SuppressWarnings({"unchecked" })
   protected AbstractCtx(CtxParams params, 
       Map<String, Object> instanceMap) {
-    this.allowNullReturn = params.isAllowNullReturn();
+    this._allowNullReturn = params.isAllowNullReturn();
     creationMap = notNull(params.getUnmodifiableMapSupplier())
-        .apply(params.getCreationMap());
-    checkParams(creationMap);
+        .apply(checkParams(params.getCreationMap()));
     this.instanceMap = instanceMap;
     checkParams(instanceMap);
   }
@@ -97,25 +97,12 @@ I_PrintCtx {
   @SuppressWarnings("unchecked")
   @Override
   public <T> T create(Class<T> clazz) {
-    return (T) create(clazz.getName());
+    return (T) createInternal(clazz.getName());
   }
 
   @Override
   public Object create(String name) {
-    Supplier<Object> s = creationMap.get(name);
-    if (s == null) {
-      throw new IllegalStateException(NO_SUPPLIER_FOUND_FOR_S + name);
-    }
-    Object r = s.get();
-
-    if (r == null) {
-      if (allowNullReturn) {
-        return null;
-      }
-      throw new IllegalStateException(THE_SUPPLIER_FOR_S_RETURNED_NULL_1 +
-          name + THE_SUPPLIER_FOR_S_RETURNED_NULL_2);
-    }
-    return r;
+    return createInternal(name);
   }
 
   @SuppressWarnings("unchecked")
@@ -124,9 +111,43 @@ I_PrintCtx {
     return (T) get(clazz.getName());
   }
 
-  void checkParams(Map<?, ?> map) {
-    notContainsKey(NO_NULL_KEYS, map, null);
-    notContainsValue(NO_NULL_VALUES, map, null);
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  Map<?, ?> checkParams(Map<?, ?> map) {
+    Map m = new HashMap<>();
+    for (Map.Entry<?, ?> entry : map.entrySet()) {
+      m.put(notNull(NO_NULL_KEYS,entry.getKey()),
+        notNull(NO_NULL_VALUES, entry.getValue()));
+      
+    }
+    return m;
   }
 
+  private Object createInternal(String name) {
+    Supplier<Object> s = getSupplier(name, !_allowNullReturn);
+    Object r = s.get();
+
+    if (r == null) {
+      if (_allowNullReturn) {
+        return null;
+      }
+      throw new IllegalStateException(THE_SUPPLIER_FOR_S_RETURNED_NULL_1 +
+          name + THE_SUPPLIER_FOR_S_RETURNED_NULL_2);
+    }
+    return r;
+  }
+
+  public boolean hasSupplier(String name, boolean throwException) {
+    if (getSupplier(name, false) == null) {
+      return false;
+    }
+    return true;
+  }
+
+  private Supplier<Object> getSupplier(String name, boolean throwException) {
+    Supplier<Object> s = creationMap.get(name);
+    if (s == null && throwException) {
+      throw new IllegalStateException(NO_SUPPLIER_FOUND_FOR_S + name);
+    }
+    return s;
+  }
 }

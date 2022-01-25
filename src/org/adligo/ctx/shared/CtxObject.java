@@ -1,8 +1,13 @@
 package org.adligo.ctx.shared;
 
+import org.adligo.i.ctx4jse.shared.CheckMixin;
+import org.adligo.i.ctx4jse.shared.I_JseCtx;
+import org.adligo.i.ctx4jse.shared.I_JseCtxAware;
+
 /**
- * This class provides a immutable sub context that can wrap any kind of
- * ctx.  
+ * This class provides a base {@link I_JseCtxAware}, note there is no
+ * similar class that is {@link I_CtxAware} in this library.  {@link I_CtxAware}
+ * is used for backward compatible old JME stuff.
  * <br/>
  * 
  * @author scott<br/>
@@ -26,22 +31,15 @@ package org.adligo.ctx.shared;
  * limitations under the License.
  * </code><pre>
  */
-public class SubCtx extends AbstractSubCtx {
-
-  public SubCtx() {
-    this(new CtxParams());
-  }
+public class CtxObject implements CheckMixin, I_JseCtxAware {
+  private final I_JseCtx _ctx;
   
-  public SubCtx(CtxParams params) {
-    super(params, createInstanceMap(params));
+  public CtxObject(I_JseCtx ctx) {
+    _ctx = notNull(ctx);
   }
 
   @Override
-  public Object get(String name) {
-    Object r = instanceMap.get(name);
-    if (r != null) {
-      return r;
-    }
-    return parent.create(name);
+  public I_JseCtx getCtx() {
+    return _ctx;
   }
 }

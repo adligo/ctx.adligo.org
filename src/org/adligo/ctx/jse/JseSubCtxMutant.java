@@ -1,6 +1,9 @@
 package org.adligo.ctx.jse;
 
+import java.util.function.BiFunction;
+
 import org.adligo.ctx.shared.CtxParams;
+import org.adligo.i.ctx4jse.shared.I_JseCtx;
 
 /**
  * This class provides a Mutable Concurrent Context useable on the standard JVM.
@@ -40,12 +43,17 @@ public class JseSubCtxMutant extends ConcurrentSubCtxMutant {
   public static final Object[] EMPTY_OBJECT_ARRAY = new Object[] {};
   public static final String UNABLE_TO_CREATE_INSTANCE_OF_S = "Unable to create instance of %s";
 
+
+  private final BiFunction<I_JseCtx, Class<?>,?> _creationWrapper;
+
+  
   public JseSubCtxMutant() {
     this(new CtxParams());
   }
 
   public JseSubCtxMutant(CtxParams params) {
     super(params);
+    _creationWrapper = JseCtxMutant.setCreationWrapper(params);
   }
 
   @SuppressWarnings("unchecked")
@@ -59,7 +67,7 @@ public class JseSubCtxMutant extends ConcurrentSubCtxMutant {
     if (r != null) {
       return (T) r;
     }   
-    return JseCtxMutant.createThroughReflection(clazz);
+    return (T) _creationWrapper.apply(this, clazz);
   }
 
   @Override
