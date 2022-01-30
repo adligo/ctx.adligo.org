@@ -10,10 +10,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.adligo.i.ctx4jse.shared.CheckMixin;
-import org.adligo.i.ctx4jse.shared.I_JseCtx;
-import org.adligo.i.ctx4jse.shared.I_JseCtxAware;
-import org.adligo.i.threads.I_ThreadCtx;
+import org.adligo.i_ctx4jse.shared.CheckMixin;
+import org.adligo.i_ctx4jse.shared.I_JseCtx;
+import org.adligo.i_ctx4jse.shared.I_JseCtxAware;
+import org.adligo.i_threads.I_ThreadCtx;
 
 /**
  * This class provides the Copy Constructor parameter to the {@link AbstractRootCtx}

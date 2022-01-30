@@ -1,11 +1,14 @@
 package org.adligo.ctx.jse;
 
+import java.util.concurrent.Executor;
+
 import org.adligo.ctx.shared.AbstractSubCtx;
 import org.adligo.ctx.shared.CtxParams;
-import org.adligo.i.threads.I_ThreadCtx;
+import org.adligo.i_threads.I_ThreadCtx;
+import org.adligo.i_threads4jse.I_ThreadJseCtx;
 
 public class ConcurrentSubCtxMutant extends AbstractSubCtx 
-implements I_ThreadCtx {
+implements I_ThreadJseCtx {
   //this simply allows the stubbing of the synchronized method
   private final I_ThreadCtx threadCtx;
   
@@ -35,5 +38,10 @@ implements I_ThreadCtx {
       return parent.create(name);
     }
     return r;
+  }
+
+  @Override
+  public Executor getDefaultExecutor() {
+    return newWorkStealingPool(availableProcessors());
   }
 }

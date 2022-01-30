@@ -1,6 +1,6 @@
 package org.adligo.ctx.shared;
 
-import org.adligo.i.ctx4jse.shared.CheckMixin;
+import org.adligo.i_ctx4jse.shared.CheckMixin;
 
 /**
  * A immutable Ctx, useful in some situations for making sure

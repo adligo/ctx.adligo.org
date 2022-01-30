@@ -1,8 +1,8 @@
 package org.adligo.ctx.shared;
 
-import org.adligo.i.ctx4jse.shared.CheckMixin;
-import org.adligo.i.ctx4jse.shared.I_JseCtx;
-import org.adligo.i.ctx4jse.shared.I_JseCtxAware;
+import org.adligo.i_ctx4jse.shared.CheckMixin;
+import org.adligo.i_ctx4jse.shared.I_JseCtx;
+import org.adligo.i_ctx4jse.shared.I_JseCtxAware;
 
 /**
  * This class provides a base {@link I_JseCtxAware}, note there is no

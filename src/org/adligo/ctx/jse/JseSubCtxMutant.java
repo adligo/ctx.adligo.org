@@ -3,7 +3,7 @@ package org.adligo.ctx.jse;
 import java.util.function.BiFunction;
 
 import org.adligo.ctx.shared.CtxParams;
-import org.adligo.i.ctx4jse.shared.I_JseCtx;
+import org.adligo.i_ctx4jse.shared.I_JseCtx;
 
 /**
  * This class provides a Mutable Concurrent Context useable on the standard JVM.

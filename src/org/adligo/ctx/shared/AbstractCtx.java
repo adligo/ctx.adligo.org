@@ -5,9 +5,9 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import org.adligo.i.ctx4jse.shared.Check;
-import org.adligo.i.ctx4jse.shared.CheckMixin;
-import org.adligo.i.ctx4jse.shared.I_PrintCtx;
+import org.adligo.i_ctx4jse.shared.Check;
+import org.adligo.i_ctx4jse.shared.CheckMixin;
+import org.adligo.i_ctx4jse.shared.I_PrintCtx;
 
 /**
  * This class provides a Functional Implementation of the Context Creation and
